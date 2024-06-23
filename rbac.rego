@@ -19,19 +19,32 @@
 
 package app.rbac
 
-# import data.utils
-
 # By default, deny requests
 default allow = false
 
-# Allow admins to do anything
+# Allow someuser to do anything
 allow {
-	user_is_admin
+	user_is_someuser
 }
 
-# Allow bob to do anything
+allow {
+	some i, j
+	user := data.users[i]
+    	recipe := data.recipe[j]
+	user.id == input.user
+	recipe.id == input.recipe
+	user.location == recipe.location
+}
+
+allow {
+	some i
+	data.recipe[i].id == input.recipe
+	data.recipe[i].location = input.location
+}
+
+# Allow rohansrma to do anything
 #allow {
-#	input.user == "bob"
+#	input.user == "rohansrma"
 #}
 
 # you can ignore this rule, it's simply here to create a dependency
@@ -43,57 +56,9 @@ allow {
 #	utils.hasPermission(input.matching_policy.grants, input.roles)
 #}
 
-# Allow the action if the user is granted permission to perform the action.
-allow {
-	# Find permissions for the user.
-	some permission
-	user_is_granted[permission]
-
-	# Check if the permission permits the action.
-	input.action == permission.action
-	input.type == permission.type
-
-	# unless user location is outside US
-	country := data.users[input.user].location.country
-	country == "US"
-}
-
-# user_is_admin is true if...
-user_is_admin {
-	# for some `i`...
+# user_is_chef is true if...
+user_is_someuser {
 	some i
-
-	# "admin" is the `i`-th element in the user->role mappings for the identified user.
-	data.users[input.user].roles[i] == "admin"
-}
-
-# user_is_viewer is true if...
-user_is_viewer {
-	# for some `i`...
-	some i
-
-	# "viewer" is the `i`-th element in the user->role mappings for the identified user.
-	data.users[input.user].roles[i] == "viewer"
-}
-
-# user_is_guest is true if...
-user_is_guest {
-	# for some `i`...
-	some i
-
-	# "guest" is the `i`-th element in the user->role mappings for the identified user.
-	data.users[input.user].roles[i] == "guest"
-}
-
-
-# user_is_granted is a set of permissions for the user identified in the request.
-# The `permission` will be contained if the set `user_is_granted` for every...
-user_is_granted[permission] {
-	some i, j
-
-	# `role` assigned an element of the user_roles for this user...
-	role := data.users[input.user].roles[i]
-
-	# `permission` assigned a single permission from the permissions list for 'role'...
-	permission := data.role_permissions[role][j]
+	data.users[i].id == input.user
+	data.users[i].karma > 99
 }
